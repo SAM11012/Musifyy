@@ -13,14 +13,55 @@ const BOLLYWOOD_SONGS_QUERIES = [
   "Best Hindi Songs",
   "Popular Bollywood Music",
   "New Hindi Songs",
-  "Bollywood Hits"
+  "Bollywood Hits",
+  "Old Bollywood Songs",
+  "Romantic Hindi Songs",
+  "Party Hindi Songs",
+  "Arijit Singh Songs",
+  "Atif Aslam Songs",
+  "Neha Kakkar Songs",
+  "Jubin Nautiyal Songs",
+  "A.R. Rahman Songs",
+  "Pritam Songs",
+  "Bollywood Dance Songs",
+  "Bollywood Sad Songs",
+  "90s Bollywood Songs",
+  "Bollywood Wedding Songs",
+  "Kumar Sanu Songs",
+  "Lata Mangeshkar Songs"
 ];
 
 export const getRandomBollywoodSongs = async (
   apiKey: string
 ): Promise<YouTubeVideo[]> => {
-  const randomQuery = BOLLYWOOD_SONGS_QUERIES[Math.floor(Math.random() * BOLLYWOOD_SONGS_QUERIES.length)];
-  return searchYouTubeVideos(randomQuery, apiKey);
+  // Get multiple random queries to increase variety
+  const shuffledQueries = [...BOLLYWOOD_SONGS_QUERIES]
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+  
+  try {
+    // Fetch songs for each random query
+    const songsPromises = shuffledQueries.map(query => 
+      searchYouTubeVideos(query, apiKey)
+    );
+    
+    const songsArrays = await Promise.all(songsPromises);
+    
+    // Combine and shuffle all songs
+    const allSongs = songsArrays
+      .flat()
+      .sort(() => Math.random() - 0.5);
+    
+    // Return unique songs based on ID
+    const uniqueSongs = Array.from(
+      new Map(allSongs.map(song => [song.id, song])).values()
+    );
+    
+    return uniqueSongs;
+  } catch (error) {
+    console.error('Error fetching random Bollywood songs:', error);
+    throw error;
+  }
 };
 
 export const searchYouTubeVideos = async (
