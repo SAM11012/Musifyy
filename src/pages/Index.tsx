@@ -7,6 +7,7 @@ import { SearchBar } from "@/components/MusicPlayer/SearchBar";
 import { NowPlaying } from "@/components/MusicPlayer/NowPlaying";
 import { toast } from "sonner";
 import { searchYouTubeVideos, type YouTubeVideo } from "@/services/youtube";
+import { Input } from "@/components/ui/input";
 
 const Index = () => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -15,19 +16,24 @@ const Index = () => {
   const [duration, setDuration] = useState(0);
   const [searchResults, setSearchResults] = useState<YouTubeVideo[]>([]);
   const [currentTrack, setCurrentTrack] = useState<YouTubeVideo | null>(null);
+  const [apiKey, setApiKey] = useState("");
   const playerRef = useRef<ReactPlayer | null>(null);
 
-  // This will be replaced with your actual API key from Supabase
-  const YOUTUBE_API_KEY = "";
+  const handleApiKeySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (apiKey.trim()) {
+      toast.success("API key set successfully");
+    }
+  };
 
   const handleSearch = async (query: string) => {
     try {
-      if (!YOUTUBE_API_KEY) {
+      if (!apiKey) {
         toast.error("Please set up your YouTube API key first");
         return;
       }
 
-      const videos = await searchYouTubeVideos(query, YOUTUBE_API_KEY);
+      const videos = await searchYouTubeVideos(query, apiKey);
       setSearchResults(videos);
     } catch (error) {
       toast.error("Error searching for videos");
@@ -79,6 +85,27 @@ const Index = () => {
   return (
     <div className="min-h-screen p-6 flex flex-col space-y-8">
       <div className="flex-1 flex flex-col items-center space-y-8 max-w-4xl mx-auto w-full">
+        {!apiKey && (
+          <form onSubmit={handleApiKeySubmit} className="w-full max-w-md">
+            <div className="space-y-4 p-6 music-glass rounded-xl">
+              <h2 className="text-lg font-semibold">Enter YouTube API Key</h2>
+              <Input
+                type="password"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Your YouTube API Key"
+                className="bg-music-card border-music-border"
+              />
+              <button
+                type="submit"
+                className="w-full px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg transition-colors"
+              >
+                Set API Key
+              </button>
+            </div>
+          </form>
+        )}
+
         <SearchBar onSearch={handleSearch} />
         
         <div className="w-full flex-1 rounded-xl music-glass p-6 overflow-y-auto">
@@ -104,7 +131,7 @@ const Index = () => {
             </div>
           ) : (
             <div className="flex items-center justify-center h-full text-music-textSecondary">
-              Search for your favorite music to start playing
+              {apiKey ? "Search for your favorite music to start playing" : "Please set your YouTube API key to start"}
             </div>
           )}
         </div>
