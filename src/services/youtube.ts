@@ -8,6 +8,21 @@ export interface YouTubeVideo {
   channelTitle: string;
 }
 
+const BOLLYWOOD_SONGS_QUERIES = [
+  "Latest Bollywood Songs",
+  "Best Hindi Songs",
+  "Popular Bollywood Music",
+  "New Hindi Songs",
+  "Bollywood Hits"
+];
+
+export const getRandomBollywoodSongs = async (
+  apiKey: string
+): Promise<YouTubeVideo[]> => {
+  const randomQuery = BOLLYWOOD_SONGS_QUERIES[Math.floor(Math.random() * BOLLYWOOD_SONGS_QUERIES.length)];
+  return searchYouTubeVideos(randomQuery, apiKey);
+};
+
 export const searchYouTubeVideos = async (
   query: string,
   apiKey: string

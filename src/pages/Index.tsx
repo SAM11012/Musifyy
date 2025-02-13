@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { Controls } from "@/components/MusicPlayer/Controls";
@@ -6,7 +5,7 @@ import { ProgressBar } from "@/components/MusicPlayer/ProgressBar";
 import { SearchBar } from "@/components/MusicPlayer/SearchBar";
 import { NowPlaying } from "@/components/MusicPlayer/NowPlaying";
 import { toast } from "sonner";
-import { searchYouTubeVideos, type YouTubeVideo } from "@/services/youtube";
+import { searchYouTubeVideos, getRandomBollywoodSongs, type YouTubeVideo } from "@/services/youtube";
 import { Input } from "@/components/ui/input";
 
 const Index = () => {
@@ -17,12 +16,29 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<YouTubeVideo[]>([]);
   const [currentTrack, setCurrentTrack] = useState<YouTubeVideo | null>(null);
   const [apiKey, setApiKey] = useState("");
+  const [bollywoodSongs, setBollywoodSongs] = useState<YouTubeVideo[]>([]);
+  const [isLoadingBollywood, setIsLoadingBollywood] = useState(false);
   const playerRef = useRef<ReactPlayer | null>(null);
+
+  const loadBollywoodSongs = async () => {
+    if (!apiKey || isLoadingBollywood) return;
+    
+    try {
+      setIsLoadingBollywood(true);
+      const songs = await getRandomBollywoodSongs(apiKey);
+      setBollywoodSongs(songs);
+    } catch (error) {
+      console.error("Error loading Bollywood songs:", error);
+    } finally {
+      setIsLoadingBollywood(false);
+    }
+  };
 
   const handleApiKeySubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (apiKey.trim()) {
       toast.success("API key set successfully");
+      loadBollywoodSongs();
     }
   };
 
@@ -45,26 +61,48 @@ const Index = () => {
   };
 
   const handleNext = () => {
-    if (searchResults.length === 0) return;
+    if (searchResults.length === 0 && bollywoodSongs.length === 0) return;
     
     const currentIndex = currentTrack
       ? searchResults.findIndex((track) => track.id === currentTrack.id)
       : -1;
     
-    const nextIndex = (currentIndex + 1) % searchResults.length;
-    setCurrentTrack(searchResults[nextIndex]);
+    if (currentIndex === searchResults.length - 1) {
+      // If we're at the end of search results, switch to Bollywood songs
+      if (bollywoodSongs.length > 0) {
+        setCurrentTrack(bollywoodSongs[0]);
+        toast.success("Now playing Bollywood songs!");
+      }
+    } else if (currentIndex === -1 && bollywoodSongs.includes(currentTrack!)) {
+      // If we're in Bollywood songs
+      const bollywoodIndex = bollywoodSongs.findIndex((track) => track.id === currentTrack!.id);
+      const nextBollywoodIndex = (bollywoodIndex + 1) % bollywoodSongs.length;
+      setCurrentTrack(bollywoodSongs[nextBollywoodIndex]);
+    } else {
+      // Continue with search results
+      const nextIndex = (currentIndex + 1) % searchResults.length;
+      setCurrentTrack(searchResults[nextIndex]);
+    }
     setIsPlaying(true);
   };
 
   const handlePrevious = () => {
-    if (searchResults.length === 0) return;
+    if (searchResults.length === 0 && bollywoodSongs.length === 0) return;
     
     const currentIndex = currentTrack
       ? searchResults.findIndex((track) => track.id === currentTrack.id)
       : -1;
     
-    const prevIndex = currentIndex <= 0 ? searchResults.length - 1 : currentIndex - 1;
-    setCurrentTrack(searchResults[prevIndex]);
+    if (bollywoodSongs.includes(currentTrack!)) {
+      // If we're in Bollywood songs
+      const bollywoodIndex = bollywoodSongs.findIndex((track) => track.id === currentTrack!.id);
+      const prevBollywoodIndex = bollywoodIndex <= 0 ? bollywoodSongs.length - 1 : bollywoodIndex - 1;
+      setCurrentTrack(bollywoodSongs[prevBollywoodIndex]);
+    } else {
+      // Handle search results
+      const prevIndex = currentIndex <= 0 ? searchResults.length - 1 : currentIndex - 1;
+      setCurrentTrack(searchResults[prevIndex]);
+    }
     setIsPlaying(true);
   };
 
@@ -80,6 +118,13 @@ const Index = () => {
   const handleVideoSelect = (video: YouTubeVideo) => {
     setCurrentTrack(video);
     setIsPlaying(true);
+  };
+
+  const handleTrackEnd = () => {
+    handleNext();
+    if (currentTrack && searchResults.indexOf(currentTrack) === searchResults.length - 1) {
+      loadBollywoodSongs(); // Load new Bollywood songs when current playlist ends
+    }
   };
 
   return (
@@ -153,7 +198,7 @@ const Index = () => {
                 width={0}
                 onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)}
                 onDuration={setDuration}
-                onEnded={handleNext}
+                onEnded={handleTrackEnd}
                 config={{
                   youtube: {
                     playerVars: { controls: 0 }
