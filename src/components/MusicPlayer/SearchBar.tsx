@@ -24,9 +24,9 @@ export const SearchBar = ({ onSearch }: SearchBarProps) => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search for songs..."
-          className="w-full px-4 py-3 pl-12 bg-music-card border border-music-border rounded-xl focus:outline-none focus:border-primary transition-colors"
+          className="w-full px-4 py-3 pl-12 bg-zinc-800/50 border border-purple-500/20 rounded-xl focus:outline-none focus:border-purple-500/50 transition-colors text-white placeholder:text-purple-300/60"
         />
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-music-textSecondary" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-purple-400/60" />
       </div>
     </form>
   );
