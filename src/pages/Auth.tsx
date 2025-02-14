@@ -21,23 +21,31 @@ const Auth = () => {
 
     try {
       if (isSignUp) {
+        // First, sign up the user
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            data: {
-              username,
-            },
-          },
         });
 
         if (signUpError) throw signUpError;
 
         if (signUpData.user) {
-          // Create profile
+          // Sign in immediately after signup to ensure we have a valid session
+          const { error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (signInError) throw signInError;
+
+          // Now create the profile after we're authenticated
           const { error: profileError } = await supabase
             .from('profiles')
-            .insert([{ id: signUpData.user.id, username }]);
+            .insert([{ 
+              id: signUpData.user.id, 
+              username,
+              avatar_url: null,
+            }]);
 
           if (profileError) throw profileError;
           
