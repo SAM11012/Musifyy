@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { Controls } from "@/components/MusicPlayer/Controls";
@@ -128,11 +129,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black p-6 flex flex-col space-y-8">
+    <div 
+      className="min-h-screen bg-black p-6 flex flex-col space-y-8"
+      style={{
+        backgroundImage: 'url(/images/photo-1506744038136-46273834b3fb)', // High resolution landscape image
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <div className="flex-1 flex flex-col items-center space-y-8 max-w-4xl mx-auto w-full">
         {!apiKey && (
           <form onSubmit={handleApiKeySubmit} className="w-full max-w-md">
-            <div className="space-y-4 p-6 bg-zinc-900/50 backdrop-blur-xl border border-purple-500/20 rounded-xl">
+            <div className="space-y-4 p-6 bg-zinc-900/90 backdrop-blur-xl border border-purple-500/20 rounded-xl">
               <h2 className="text-lg font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">Enter YouTube API Key</h2>
               <Input
                 type="password"
@@ -153,20 +162,21 @@ const Index = () => {
 
         <SearchBar onSearch={handleSearch} />
         
-        <div className="w-full flex-1 rounded-xl bg-zinc-900/50 backdrop-blur-xl border border-purple-500/20 p-6 overflow-y-auto">
+        <div className="w-full flex-1 rounded-xl bg-zinc-900/90 backdrop-blur-xl border border-purple-500/20 p-6 overflow-y-auto">
           {searchResults.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {searchResults.map((video) => (
                 <div
                   key={video.id}
                   onClick={() => handleVideoSelect(video)}
-                  className="group p-4 rounded-xl bg-zinc-800/50 hover:bg-zinc-800/80 cursor-pointer transition-all duration-300 hover:scale-[1.02] border border-purple-500/10 hover:border-purple-500/30"
+                  className="group p-4 rounded-xl bg-zinc-800/80 hover:bg-zinc-800/90 cursor-pointer transition-all duration-300 hover:scale-[1.02] border border-purple-500/10 hover:border-purple-500/30"
                 >
                   <div className="relative overflow-hidden rounded-lg">
                     <img
                       src={video.thumbnail}
                       alt={video.title}
                       className="w-full aspect-video object-cover transform transition-transform group-hover:scale-105"
+                      loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
@@ -185,7 +195,7 @@ const Index = () => {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-zinc-900/80 backdrop-blur-xl border-t border-purple-500/20">
+      <div className="fixed bottom-0 left-0 right-0 p-6 bg-zinc-900/95 backdrop-blur-xl border-t border-purple-500/20">
         <div className="max-w-4xl mx-auto space-y-4">
           {currentTrack && (
             <>
