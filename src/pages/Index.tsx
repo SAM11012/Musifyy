@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import ReactPlayer from "react-player";
 import { Controls } from "@/components/MusicPlayer/Controls";
@@ -6,7 +5,7 @@ import { ProgressBar } from "@/components/MusicPlayer/ProgressBar";
 import { SearchBar } from "@/components/MusicPlayer/SearchBar";
 import { NowPlaying } from "@/components/MusicPlayer/NowPlaying";
 import { toast } from "sonner";
-import { searchYouTubeVideos, getRandomBollywoodSongs, type YouTubeVideo } from "@/services/youtube";
+import { searchYouTubeVideos, getRandomBollywoodSongs, getTrendingMusic, type YouTubeVideo } from "@/services/youtube";
 import { Input } from "@/components/ui/input";
 
 const Index = () => {
@@ -19,7 +18,30 @@ const Index = () => {
   const [apiKey, setApiKey] = useState("");
   const [bollywoodSongs, setBollywoodSongs] = useState<YouTubeVideo[]>([]);
   const [isLoadingBollywood, setIsLoadingBollywood] = useState(false);
+  const [trendingSongs, setTrendingSongs] = useState<YouTubeVideo[]>([]);
+  const [isLoadingTrending, setIsLoadingTrending] = useState(false);
   const playerRef = useRef<ReactPlayer | null>(null);
+
+  const loadTrendingSongs = async () => {
+    if (!apiKey || isLoadingTrending) return;
+    
+    try {
+      setIsLoadingTrending(true);
+      const songs = await getTrendingMusic(apiKey);
+      setTrendingSongs(songs);
+    } catch (error) {
+      console.error("Error loading trending songs:", error);
+      toast.error("Failed to load trending songs");
+    } finally {
+      setIsLoadingTrending(false);
+    }
+  };
+
+  useEffect(() => {
+    if (apiKey) {
+      loadTrendingSongs();
+    }
+  }, [apiKey]);
 
   const loadBollywoodSongs = async () => {
     if (!apiKey || isLoadingBollywood) return;
@@ -132,7 +154,7 @@ const Index = () => {
     <div 
       className="min-h-screen bg-black p-6 flex flex-col space-y-8"
       style={{
-        backgroundImage: 'url(/images/photo-1506744038136-46273834b3fb)', // High resolution landscape image
+        backgroundImage: 'url(/images/photo-1506744038136-46273834b3fb)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
@@ -164,32 +186,66 @@ const Index = () => {
         
         <div className="w-full flex-1 rounded-xl bg-zinc-900/90 backdrop-blur-xl border border-purple-500/20 p-6 overflow-y-auto">
           {searchResults.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {searchResults.map((video) => (
-                <div
-                  key={video.id}
-                  onClick={() => handleVideoSelect(video)}
-                  className="group p-4 rounded-xl bg-zinc-800/80 hover:bg-zinc-800/90 cursor-pointer transition-all duration-300 hover:scale-[1.02] border border-purple-500/10 hover:border-purple-500/30"
-                >
-                  <div className="relative overflow-hidden rounded-lg">
-                    <img
-                      src={video.thumbnail}
-                      alt={video.title}
-                      className="w-full aspect-video object-cover transform transition-transform group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {searchResults.map((video) => (
+                  <div
+                    key={video.id}
+                    onClick={() => handleVideoSelect(video)}
+                    className="group p-4 rounded-xl bg-zinc-800/80 hover:bg-zinc-800/90 cursor-pointer transition-all duration-300 hover:scale-[1.02] border border-purple-500/10 hover:border-purple-500/30"
+                  >
+                    <div className="relative overflow-hidden rounded-lg">
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        className="w-full aspect-video object-cover transform transition-transform group-hover:scale-105"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <h3 className="font-medium text-sm line-clamp-2 mt-3 text-white/90">{video.title}</h3>
+                    <p className="text-xs text-purple-300/60 mt-1">
+                      {video.channelTitle}
+                    </p>
                   </div>
-                  <h3 className="font-medium text-sm line-clamp-2 mt-3 text-white/90">{video.title}</h3>
-                  <p className="text-xs text-purple-300/60 mt-1">
-                    {video.channelTitle}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center h-full text-purple-300/60">
-              {apiKey ? "Search for your favorite music to start playing" : "Please set your YouTube API key to start"}
+            <div className="space-y-8">
+              {trendingSongs.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-semibold mb-4 text-white">Trending Music</h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {trendingSongs.map((video) => (
+                      <div
+                        key={video.id}
+                        onClick={() => handleVideoSelect(video)}
+                        className="group p-4 rounded-xl bg-zinc-800/80 hover:bg-zinc-800/90 cursor-pointer transition-all duration-300 hover:scale-[1.02] border border-purple-500/10 hover:border-purple-500/30"
+                      >
+                        <div className="relative overflow-hidden rounded-lg">
+                          <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="w-full aspect-video object-cover transform transition-transform group-hover:scale-105"
+                            loading="lazy"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <h3 className="font-medium text-sm line-clamp-2 mt-3 text-white/90">{video.title}</h3>
+                        <p className="text-xs text-purple-300/60 mt-1">
+                          {video.channelTitle}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {!apiKey && (
+                <div className="flex items-center justify-center h-full text-purple-300/60">
+                  Please set your YouTube API key to start
+                </div>
+              )}
             </div>
           )}
         </div>

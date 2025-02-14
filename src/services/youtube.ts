@@ -1,4 +1,3 @@
-
 const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3';
 
 export interface YouTubeVideo {
@@ -7,6 +6,30 @@ export interface YouTubeVideo {
   thumbnail: string;
   channelTitle: string;
 }
+
+export const getTrendingMusic = async (apiKey: string): Promise<YouTubeVideo[]> => {
+  try {
+    const response = await fetch(
+      `${YOUTUBE_API_URL}/videos?part=snippet&chart=mostPopular&videoCategoryId=10&maxResults=12&key=${apiKey}`
+    );
+
+    if (!response.ok) {
+      throw new Error('YouTube API request failed');
+    }
+
+    const data = await response.json();
+    
+    return data.items.map((item: any) => ({
+      id: item.id,
+      title: item.snippet.title,
+      thumbnail: item.snippet.thumbnails.medium.url,
+      channelTitle: item.snippet.channelTitle,
+    }));
+  } catch (error) {
+    console.error('Error fetching trending music:', error);
+    throw error;
+  }
+};
 
 const BOLLYWOOD_SONGS_QUERIES = [
   "Latest Bollywood Songs",
