@@ -31,6 +31,30 @@ export const getTrendingMusic = async (apiKey: string): Promise<YouTubeVideo[]> 
   }
 };
 
+export const getTrendingHindiSongs = async (apiKey: string): Promise<YouTubeVideo[]> => {
+  try {
+    const response = await fetch(
+      `${YOUTUBE_API_URL}/search?part=snippet&maxResults=12&q=new hindi songs trending&type=video&videoCategoryId=10&key=${apiKey}`
+    );
+
+    if (!response.ok) {
+      throw new Error('YouTube API request failed');
+    }
+
+    const data = await response.json();
+    
+    return data.items.map((item: any) => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+      thumbnail: item.snippet.thumbnails.medium.url,
+      channelTitle: item.snippet.channelTitle,
+    }));
+  } catch (error) {
+    console.error('Error fetching trending Hindi songs:', error);
+    throw error;
+  }
+};
+
 const BOLLYWOOD_SONGS_QUERIES = [
   "Latest Bollywood Songs",
   "Best Hindi Songs",
